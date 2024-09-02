@@ -3,7 +3,8 @@ pragma solidity 0.8.26;
 
 contract EventRegistration {
 
-    error TooLow(uint sent, uint required)
+    error TooLow(uint sent, uint required);
+    error TooMuch(uint sent, uint required);
 
     struct Event {
         string name;
@@ -60,10 +61,13 @@ contract EventRegistration {
 
     function register(uint256 _eventId) public payable eventIsOpen(_eventId) {
         Event storage _event = events[_eventId];
-        require(msg.value == _event.registrationFee, "Incorrect registration fee.");
 
-         if (_value < _registrationFee) {
-            revert TooLow(_value, _registrationFee);
+         if (msg.value > _event.registrationFee) {
+            revert TooMuch(msg.value, _event.registrationFee);
+        }
+
+          if (msg.value < _event.registrationFee) {
+            revert TooLow(msg.value, _event.registrationFee);
         }
 
         _event.participants.push(msg.sender);
