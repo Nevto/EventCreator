@@ -19,6 +19,15 @@ contract EventRegistration {
     mapping(uint256 => Event) public events;
     uint256 public eventCount;
 
+    uint256 public immutable defaultMaxParticipants;
+    uint256 public immutable defaultRegistrationFee;
+
+    constructor() {
+
+        defaultMaxParticipants = 65;
+        defaultRegistrationFee = 10;
+    }
+
     modifier  onlyOrganizer(uint256 _eventId) {
         require(events[_eventId].organizer == msg.sender, "Only the organizer can perform this action");
         _;
@@ -32,16 +41,16 @@ contract EventRegistration {
     }
     function createEvent(
         string memory _name,
-        uint256 _registrationFee,
-        uint256 _maxParticipants,
+        // uint256 _registrationFee,
+        // uint256 _maxParticipants,
         uint256 _deadline
     ) public {
         require(_deadline > block.timestamp, "Deadline must be in the future.");
 
         Event storage newEvent = events[eventCount];
         newEvent.name = _name;
-        newEvent.registrationFee = _registrationFee;
-        newEvent.maxParticipants = _maxParticipants;
+        newEvent.registrationFee = defaultRegistrationFee;
+        newEvent.maxParticipants = defaultMaxParticipants;
         newEvent.deadline = _deadline;
         newEvent.organizer = payable(msg.sender);
         newEvent.isOpen = true;
