@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity 0.8.26;
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract EventRegistration {
+contract EventRegistration is ReentrancyGuard{
 
     error TooLow(uint sent, uint required);
     error TooMuch(uint sent, uint required);
+    error AlreadyRegistered(address participant);
 
     struct Event {
         string name;
@@ -14,6 +16,7 @@ contract EventRegistration {
         address payable organizer;
         bool isOpen;
         address[] participants;
+        mapping(address => bool) hasRegistered;
     }
 
     mapping(uint256 => Event) public events;
@@ -25,7 +28,7 @@ contract EventRegistration {
     constructor() {
 
         defaultMaxParticipants = 65;
-        defaultRegistrationFee = 10;
+        defaultRegistrationFee = 0.05 ether;
     }
 
     modifier  onlyOrganizer(uint256 _eventId) {
@@ -39,10 +42,14 @@ contract EventRegistration {
         require(events[_eventId].participants.length < events[_eventId].maxParticipants, "Max participants reached.");
         _;
     }
+
+    event eventCreated(uint256 eventId, address organizer);
+    event participantRegistered(uint256 eventId, address participant);
+    event ReceivedEther(address from, uint256 amount);
+    event FallbackTriggered(address from, uint256 amount, bytes data);
+
     function createEvent(
         string memory _name,
-        // uint256 _registrationFee,
-        // uint256 _maxParticipants,
         uint256 _deadline
     ) public {
         require(_deadline > block.timestamp, "Deadline must be in the future.");
@@ -54,6 +61,8 @@ contract EventRegistration {
         newEvent.deadline = _deadline;
         newEvent.organizer = payable(msg.sender);
         newEvent.isOpen = true;
+
+        emit eventCreated(eventCount, msg.sender);
 
         eventCount++;
     }
@@ -71,7 +80,10 @@ contract EventRegistration {
     function register(uint256 _eventId) public payable eventIsOpen(_eventId) {
         Event storage _event = events[_eventId];
 
-         if (msg.value > _event.registrationFee) {
+        require(msg.sender != _event.organizer, "Organizer cannot register for their own event.");
+         require(!_event.hasRegistered[msg.sender], "Address has already registered for this event.");
+     
+        if (msg.value > _event.registrationFee) {
             revert TooMuch(msg.value, _event.registrationFee);
         }
 
@@ -79,6 +91,11 @@ contract EventRegistration {
             revert TooLow(msg.value, _event.registrationFee);
         }
 
+        assert(_event.participants.length <= _event.maxParticipants);
+
+        emit participantRegistered(_eventId, msg.sender);
+
+        _event.hasRegistered[msg.sender] = true;
         _event.participants.push(msg.sender);
 
         if (_event.participants.length >= _event.maxParticipants) {
@@ -90,11 +107,24 @@ contract EventRegistration {
         return events[_eventId].participants;
     }
 
-    function withdraw(uint256 _eventId) public onlyOrganizer(_eventId) {
+    function withdraw(uint256 _eventId) public onlyOrganizer(_eventId) nonReentrant {
         Event storage _event = events[_eventId];
         uint256 balance = address(this).balance;
         require(balance > 0, "No funds available to withdraw.");
+        require(!events[_eventId].isOpen, "Event is still open.");
+
 
         _event.organizer.transfer(balance);
+    }
+
+
+     receive() external payable {
+    emit ReceivedEther(msg.sender, msg.value);
+}
+
+
+
+    fallback() external payable {
+        emit FallbackTriggered(msg.sender, msg.value, msg.data);
     }
 }
