@@ -69,6 +69,8 @@ contract EventCreator is ReentrancyGuard{
 
     function openRegistration(uint256 _eventId) public onlyOrganizer(_eventId) {
         require(!events[_eventId].isOpen, "Registration is already open.");
+        require(block.timestamp < events[_eventId].deadline, "Cannot reopen: Deadline has passed.");
+        require(events[_eventId].participants.length < events[_eventId].maxParticipants, "Cannot reopen: Max participants reached.");
         events[_eventId].isOpen = true;
     }
 
