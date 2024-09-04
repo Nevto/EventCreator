@@ -45,7 +45,6 @@ contract EventCreator is ReentrancyGuard{
 
     event eventCreated(uint256 eventId, address organizer);
     event participantRegistered(uint256 eventId, address participant);
-    event ReceivedEther(address from, uint256 amount);
     event FallbackTriggered(address from, uint256 amount, bytes data);
 
     function createEvent(
@@ -119,15 +118,13 @@ contract EventCreator is ReentrancyGuard{
         _event.organizer.transfer(balance);
     }
 
-
-     receive() external payable {
-    emit ReceivedEther(msg.sender, msg.value);
+        receive() external payable {
+    revert("This contract does not accept Ether");
 }
-
-
 
     fallback() external payable {
         emit FallbackTriggered(msg.sender, msg.value, msg.data);
         revert("Fallback Function");
     }
+
 }
