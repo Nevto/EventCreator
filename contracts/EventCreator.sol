@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract EventRegistration is ReentrancyGuard{
+contract EventCreator is ReentrancyGuard{
 
     error TooLow(uint sent, uint required);
     error TooMuch(uint sent, uint required);
@@ -126,5 +126,6 @@ contract EventRegistration is ReentrancyGuard{
 
     fallback() external payable {
         emit FallbackTriggered(msg.sender, msg.value, msg.data);
+        revert("Fallback Function");
     }
 }
