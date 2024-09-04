@@ -21,6 +21,18 @@ describe("EventCreator", function () {
         expect(event.name).to.equal("Test Event");
     });
 
+    it("should not reopen registration if max participants have been reached", async function () {
+        await eventCreator.createEvent("Test Event", Math.floor(Date.now() / 1000) + 3600);
+
+        for (let i = 0; i < 10; i++) {
+            const participant = (await ethers.getSigners())[i + 1];
+            await eventCreator.connect(participant).register(0, { value: ethers.parseEther("0.05") });
+        }
+
+        await expect(eventCreator.openRegistration(0)).to.be.revertedWith("Cannot reopen: Max participants reached.");
+    });
+
+
     it("should open and close registration", async function () {
         await eventCreator.createEvent("Test Event", Math.floor(Date.now() / 1000) + 3600);
         await eventCreator.closeRegistration(0);

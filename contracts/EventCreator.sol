@@ -27,7 +27,7 @@ contract EventCreator is ReentrancyGuard{
 
     constructor() {
 
-        defaultMaxParticipants = 65;
+        defaultMaxParticipants = 10;
         defaultRegistrationFee = 0.05 ether;
     }
 
