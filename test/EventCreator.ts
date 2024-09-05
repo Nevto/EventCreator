@@ -12,7 +12,6 @@ describe("EventCreator", function () {
     let addr1: any;
     let addr2: any;
     let addr3: any;
-    let addrs: Signer[];
 
     beforeEach(async function () {
         const { eventCreator: deployedEventCreator, deployer } = await loadFixture(deployEventCreatorFixture);

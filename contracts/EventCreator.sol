@@ -11,10 +11,10 @@ contract EventCreator is ReentrancyGuard {
 
     struct Event {
         string name;
+        address payable organizer;
         uint256 registrationFee;
         uint256 maxParticipants;
         uint256 deadline;
-        address payable organizer;
         bool isOpen;
         address[] participants;
         mapping(address => bool) hasRegistered;
@@ -51,7 +51,7 @@ contract EventCreator is ReentrancyGuard {
     function createEvent(
         string memory _name,
         uint256 _deadline
-    ) public {
+    ) external {
         require(_deadline > block.timestamp, "Deadline must be in the future.");
 
         Event storage newEvent = events[eventCount];
