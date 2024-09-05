@@ -117,6 +117,8 @@ contract EventCreator is ReentrancyGuard {
 
 
         _event.organizer.transfer(balance);
+
+        assert(address(this).balance == 0);
     }
 
         receive() external payable {
