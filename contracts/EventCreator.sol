@@ -2,7 +2,8 @@
 pragma solidity 0.8.26;
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract EventCreator is ReentrancyGuard{
+
+contract EventCreator is ReentrancyGuard {
 
     error TooLow(uint sent, uint required);
     error TooMuch(uint sent, uint required);
@@ -120,11 +121,12 @@ contract EventCreator is ReentrancyGuard{
 
         receive() external payable {
     revert("This contract does not accept Ether");
-}
-
+    }
     fallback() external payable {
+
         emit FallbackTriggered(msg.sender, msg.value, msg.data);
         revert("Fallback Function");
     }
+
 
 }
